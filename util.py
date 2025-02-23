@@ -48,7 +48,6 @@ def get_mel(y, keyshift=0, speed=1, center=False):
         if resize < size:
             spec = jnp.pad(spec, ((0, 0),(0, size-resize)))
         spec = spec[:, :size, :] * win_size / win_size_new   
-    spec = spec.transpose(0,2,1)
     spec = jnp.matmul(mel_basis, spec)
     spec = dynamic_range_compression_jax(spec, clip_val=clip_val)
     return spec
