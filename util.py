@@ -1,7 +1,7 @@
 import numpy as np
 from librosa.filters import mel as librosa_mel_fn
 import jax.numpy as jnp
-import audax.core.stft
+import jax
 def dynamic_range_compression_jax(x, C=1, clip_val=1e-5):
     return jnp.log(jnp.clip(x,min=clip_val) * C)
 def get_mel(y, keyshift=0, speed=1, center=False):
@@ -35,7 +35,9 @@ def get_mel(y, keyshift=0, speed=1, center=False):
     # else:
     #     mode = 'constant'
     y = jnp.pad(y, ((0,0),(pad_left, pad_right)))
-    spec = audax.core.stft.stft(y,n_fft_new,hop_length_new,win_size_new,hann_window,onesided=True,center=False)
+    _,_,spec = jax.scipy.signal.stft(y,nfft=n_fft_new,noverlap=win_size_new-hop_length_new,nperseg=win_size_new,boundary=None)
+    spectrum_win = jnp.sin(jnp.linspace(0, jnp.pi, win_size_new, endpoint=False)) ** 2
+    spec *= spectrum_win.sum()
     spec = jnp.sqrt(spec.real**2 + spec.imag**2 + (1e-9))
     # spec = torch.stft(y, n_fft_new, hop_length=hop_length_new, win_length=win_size_new, window=self.hann_window[keyshift_key],
     #                     center=center, pad_mode='reflect', normalized=False, onesided=True, return_complex=True)                          
